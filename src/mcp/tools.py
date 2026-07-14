@@ -1,6 +1,7 @@
 """Tools MCP de leitura e escrita de arquivos.
 
 Funções de alto nível usadas pelo fluxo do agente (RF02, RF07).
+Aplica sandbox de paths (RN02 / SPEC §12) e restrição a ``.ts`` (RN01).
 """
 
 from __future__ import annotations
@@ -10,6 +11,16 @@ from pathlib import Path
 from src.mcp.client import FilesystemMCPClient
 
 _client: FilesystemMCPClient | None = None
+
+_TS_SUFFIX = ".ts"
+
+
+class PathEscapeError(PermissionError):
+    """Path resolvido escapa de PROJECT_ROOT (RN02)."""
+
+
+class InvalidExtensionError(ValueError):
+    """Extensão inválida para a operação (RN01)."""
 
 
 def get_client() -> FilesystemMCPClient:
@@ -26,17 +37,52 @@ def reset_client() -> None:
     _client = None
 
 
-def _resolve_path(path: str, *, client: FilesystemMCPClient | None = None) -> Path:
-    """Resolve um path relativo ou absoluto a partir de PROJECT_ROOT."""
+def _is_under_root(path: Path, root: Path) -> bool:
+    """True se ``path`` (já resolvido) permanece dentro de ``root``."""
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def _resolve_under_root(
+    path: str,
+    *,
+    client: FilesystemMCPClient | None = None,
+) -> Path:
+    """Resolve o path com ``Path.resolve()`` e garante sandbox em PROJECT_ROOT.
+
+    Bloqueia ``..`` e symlinks cujo alvo final escape do root (RN02).
+    """
     mcp = client or get_client()
+    root = mcp.project_root.resolve()
+
     candidate = Path(path).expanduser()
     if not candidate.is_absolute():
-        candidate = mcp.project_root / candidate
-    return candidate.resolve()
+        candidate = root / candidate
+
+    # resolve() normaliza ``..`` e segue symlinks; o destino final deve
+    # permanecer sob PROJECT_ROOT.
+    resolved = candidate.resolve()
+    if not _is_under_root(resolved, root):
+        raise PathEscapeError(
+            f"Escrita/leitura fora de PROJECT_ROOT bloqueada (RN02): {path!r} "
+            f"resolve para {resolved} (root={root})"
+        )
+    return resolved
+
+
+def _ensure_ts_extension(path: Path, *, operation: str) -> None:
+    """Rejeita caminhos cuja extensão não seja ``.ts`` (RN01)."""
+    if path.suffix != _TS_SUFFIX:
+        raise InvalidExtensionError(
+            f"{operation} permitida apenas para arquivos .ts (RN01): {path.name!r}"
+        )
 
 
 def read_file(path: str) -> str:
-    """Lê o conteúdo de um arquivo sob PROJECT_ROOT (RF02).
+    """Lê o conteúdo de um arquivo ``.ts`` sob PROJECT_ROOT (RF02, RN01, RN02).
 
     Args:
         path: Caminho relativo a PROJECT_ROOT ou absoluto.
@@ -45,17 +91,18 @@ def read_file(path: str) -> str:
         Conteúdo do arquivo como string.
     """
     client = get_client()
-    target = _resolve_path(path, client=client)
+    target = _resolve_under_root(path, client=client)
+    _ensure_ts_extension(target, operation="Leitura")
     if not client.exists(target):
         raise FileNotFoundError(f"Arquivo não encontrado: {path}")
     return client.read_text(target)
 
 
 def write_file(path: str, content: str, overwrite: bool = False) -> dict:
-    """Grava um arquivo de mock (RF07, RN03 / SPEC §12 Escrita).
+    """Grava um arquivo de mock ``.ts`` (RF07, RN01–RN03 / SPEC §12 Escrita).
 
     Args:
-        path: Destino relativo a PROJECT_ROOT ou absoluto.
+        path: Destino relativo a PROJECT_ROOT ou absoluto (deve terminar em ``.ts``).
         content: Conteúdo a gravar.
         overwrite: Se False e o destino já existir, não sobrescreve.
 
@@ -63,7 +110,8 @@ def write_file(path: str, content: str, overwrite: bool = False) -> dict:
         Dict com ``status`` (``ok`` | ``exists``) e ``path`` resolvido.
     """
     client = get_client()
-    target = _resolve_path(path, client=client)
+    target = _resolve_under_root(path, client=client)
+    _ensure_ts_extension(target, operation="Escrita")
 
     if client.exists(target) and not overwrite:
         return {"status": "exists", "path": str(target)}
@@ -73,7 +121,7 @@ def write_file(path: str, content: str, overwrite: bool = False) -> dict:
 
 
 def file_exists(path: str) -> bool:
-    """Verifica se um arquivo existe sob PROJECT_ROOT."""
+    """Verifica se um arquivo existe sob PROJECT_ROOT (RN02)."""
     client = get_client()
-    target = _resolve_path(path, client=client)
+    target = _resolve_under_root(path, client=client)
     return client.exists(target)
