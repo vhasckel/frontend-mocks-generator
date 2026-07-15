@@ -2,6 +2,43 @@
 
 Agente inteligente baseado em **LangGraph** e **MCP** que lê models TypeScript (interfaces, types e enums) e gera automaticamente arquivos de mock compatíveis.
 
+## Problema
+
+Durante o desenvolvimento frontend, a UI costuma avançar antes da API estar pronta. Criar mocks manualmente é repetitivo, sujeito a inconsistências entre desenvolvedores e fácil de ficar desalinhado do model TypeScript real.
+
+## Objetivo
+
+Automatizar a geração de mocks TypeScript a partir de um arquivo de model (interface, type ou enum), interpretando a estrutura com LLM e persistindo um arquivo de mock válido e padronizado.
+
+## Fluxo com LangGraph
+
+O agente é um grafo LangGraph com estado compartilhado (`MockAgentState`). Fluxo feliz:
+
+```
+START → read → interpret → generate → validate → write → respond → END
+```
+
+| Nó | Função |
+| --- | --- |
+| `read` | Lê o `.ts` de entrada |
+| `interpret` | Extrai models exportados via Gemini |
+| `generate` | Monta o mock com heurísticas em `src/rules/` |
+| `validate` | Checa estrutura do código gerado |
+| `write` | Grava o arquivo (sem sobrescrever) |
+| `respond` | Monta a mensagem final de sucesso ou erro |
+
+Em falha após `read`, `interpret`, `generate` ou `validate`, o grafo faz short-circuit direto para `respond`. Detalhes em [docs/TECHNICAL.md](docs/TECHNICAL.md).
+
+## Ferramenta utilizada pelo agente
+
+O agente usa uma ferramenta **MCP de filesystem** (`src/mcp/`) para:
+
+- **ler** o model TypeScript de entrada;
+- **verificar** se o mock de destino já existe;
+- **escrever** o arquivo gerado.
+
+Na v1 essa camada é uma abstração in-process (`FilesystemMCPClient`), sandboxed em `PROJECT_ROOT` — não um servidor MCP externo.
+
 ## Pré-requisitos
 
 - Python **3.11+**
@@ -47,11 +84,39 @@ python -m src.cli examples/types/User.ts
 
 Em sucesso, a CLI imprime o caminho do mock (por padrão em `examples/mocks/`, ex.: `examples/mocks/user.mock.ts`) e retorna exit code `0`. Em falha, imprime a mensagem de erro da SPEC §13 e retorna `!= 0`.
 
-Outros exemplos de entrada: `examples/types/AddressUser.ts`.
-
 ### Se o mock já existir
 
 A escrita não sobrescreve (RN03). Remova o arquivo de destino ou escolha outro model antes de regenerar.
+
+## Exemplo de entrada
+
+Arquivo: `examples/types/User.ts`
+
+```ts
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  active: boolean;
+}
+```
+
+Outro exemplo: `examples/types/AddressUser.ts`.
+
+## Exemplo de saída
+
+Arquivo gerado: `examples/mocks/user.mock.ts`
+
+```ts
+import { User } from '../types/User';
+
+export const userMock: User = {
+  id: 1,
+  name: 'João Silva',
+  email: 'user@email.com',
+  active: true,
+};
+```
 
 ## Estrutura de pastas
 
@@ -92,6 +157,6 @@ requirements.txt
 - Escrita de mock **não sobrescreve** arquivos existentes (RN03).
 - Prompts de runtime ficam em `docs/prompts/`; prompts usados para planejar/implementar o agente ficam em `docs/tasks/`.
 
-## Fora do escopo (v1)
+## Limitações da solução
 
-Factories, Faker, MSW, Storybook, Prisma, Swagger/OpenAPI e demais itens da SPEC §3 / §16 não fazem parte desta versão.
+Factories, Faker, MSW, Storybook, Prisma, Swagger/OpenAPI e demais itens da SPEC §3 / §16 não fazem parte desta versão. A geração de valores é heurística (nome/tipo da propriedade), não um gerador estatístico de dados realistas. O MCP da v1 não é um servidor externo.
