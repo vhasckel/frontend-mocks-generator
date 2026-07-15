@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import re
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from src.agent.llm import get_chat_model
@@ -14,31 +16,23 @@ from src.security.validation import (
     ValidationError,
 )
 
-_SYSTEM_PROMPT = """\
-You extract exported TypeScript structural types from source code.
+# repo root / docs/prompts/interpret.md  (nodes → agent → src → root)
+_PROMPT_PATH = (
+    Path(__file__).resolve().parents[3] / "docs" / "prompts" / "interpret.md"
+)
 
-Return ONLY valid JSON (no markdown fences) with this exact shape:
-{
-  "models": [
-    {
-      "name": "string",
-      "kind": "interface" | "type" | "enum",
-      "properties": [
-        {"name": "string", "type": "string", "optional": false}
-      ],
-      "enum_values": ["string"],
-      "nested": []
-    }
-  ]
-}
 
-Rules:
-- Include only exported interfaces, type aliases that describe object shapes, and enums.
-- For enums, put member names in enum_values and leave properties as [].
-- For interfaces/types, list each property with its TypeScript type string and optional flag.
-- Put nested object-shaped types referenced by the primary models into nested (same object shape).
-- If nothing relevant is exported, return {"models": []}.
-"""
+@lru_cache(maxsize=1)
+def _load_system_prompt() -> str:
+    """Carrega o prompt de sistema a partir de ``docs/prompts/interpret.md``.
+
+    Se o arquivo tiver um bloco introdutório separado por ``---``, usa só o
+    texto após o primeiro separador (corpo enviado à LLM).
+    """
+    raw = _PROMPT_PATH.read_text(encoding="utf-8")
+    if "\n---\n" in raw:
+        return raw.split("\n---\n", 1)[1].strip()
+    return raw.strip()
 
 
 def _has_critical_errors(state: MockAgentState) -> bool:
@@ -103,7 +97,7 @@ def interpret_node(state: MockAgentState) -> dict:
         llm = get_chat_model()
         response = llm.invoke(
             [
-                {"role": "system", "content": _SYSTEM_PROMPT},
+                {"role": "system", "content": _load_system_prompt()},
                 {
                     "role": "user",
                     "content": (
