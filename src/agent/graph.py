@@ -21,6 +21,7 @@ from src.agent.nodes.respond import respond_node
 from src.agent.nodes.validate import validate_node
 from src.agent.nodes.write import write_node
 from src.agent.state import MockAgentState, initial_state
+from src.security.validation import MSG_INTERNAL
 
 RouteTarget = Literal[
     "interpret",
@@ -90,7 +91,18 @@ def build_graph():
 
 
 def run_agent(input_path: str) -> MockAgentState:
-    """Executa o fluxo completo a partir do path do arquivo TypeScript."""
-    app = build_graph()
-    result = app.invoke(initial_state(input_path))
-    return result  # type: ignore[return-value]
+    """Executa o fluxo completo a partir do path do arquivo TypeScript.
+
+    Exceções não previstas viram short-circuit com a mensagem da SPEC §13
+    (erro inesperado), sem vazar detalhes internos.
+    """
+    try:
+        app = build_graph()
+        result = app.invoke(initial_state(input_path))
+        return result  # type: ignore[return-value]
+    except Exception:
+        failed: MockAgentState = initial_state(input_path)
+        failed["errors"] = [MSG_INTERNAL]
+        failed["status"] = "error"
+        failed["message"] = MSG_INTERNAL
+        return failed

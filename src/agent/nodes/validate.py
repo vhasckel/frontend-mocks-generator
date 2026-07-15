@@ -5,10 +5,10 @@ from __future__ import annotations
 import re
 
 from src.agent.state import MockAgentState
+from src.security.validation import MSG_INTERNAL
 
 _MSG_EMPTY = "O mock gerado está vazio."
 _MSG_INVALID = "O mock gerado é inválido ou incompatível com o modelo."
-_MSG_INTERNAL = "Erro interno durante a geração do mock."
 
 
 def _has_critical_errors(state: MockAgentState) -> bool:
@@ -126,7 +126,7 @@ def validate_node(state: MockAgentState) -> dict:
 
     parsed_model = state.get("parsed_model") or {}
     if not parsed_model.get("name") or not parsed_model.get("kind"):
-        return {"errors": [_MSG_INTERNAL], "status": "error"}
+        return {"errors": [MSG_INTERNAL], "status": "error"}
 
     expected = _model_property_names(parsed_model)
     if expected is None:

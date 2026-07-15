@@ -9,8 +9,7 @@ from dotenv import load_dotenv
 
 from src.agent.state import MockAgentState
 from src.rules import generation as rules
-
-_MSG_INTERNAL = "Erro interno durante a geração do mock."
+from src.security.validation import MSG_INTERNAL
 
 
 def _has_critical_errors(state: MockAgentState) -> bool:
@@ -44,7 +43,7 @@ def generate_node(state: MockAgentState) -> dict:
     entity_name = parsed_model.get("name")
     kind = parsed_model.get("kind")
     if not entity_name or not kind:
-        return {"errors": [_MSG_INTERNAL], "status": "error"}
+        return {"errors": [MSG_INTERNAL], "status": "error"}
 
     try:
         output_path = rules.resolve_output_path(str(entity_name), _mocks_output_dir())
@@ -63,10 +62,10 @@ def generate_node(state: MockAgentState) -> dict:
             output_path=output_path_str,
         )
     except Exception:
-        return {"errors": [_MSG_INTERNAL], "status": "error"}
+        return {"errors": [MSG_INTERNAL], "status": "error"}
 
     if not generated_mock.strip():
-        return {"errors": [_MSG_INTERNAL], "status": "error"}
+        return {"errors": [MSG_INTERNAL], "status": "error"}
 
     return {
         "generated_mock": generated_mock,

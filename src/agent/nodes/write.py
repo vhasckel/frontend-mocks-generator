@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from src.agent.state import MockAgentState
 from src.mcp import tools as mcp_tools
-
-_MSG_WRITE_FAIL = "Não foi possível criar o arquivo de mock."
+from src.security.validation import (
+    MSG_WRITE_FAIL,
+    PathOutsideProjectError,
+    ValidationError,
+    assert_within_project_root,
+)
 
 
 def _has_critical_errors(state: MockAgentState) -> bool:
@@ -32,18 +36,25 @@ def write_node(state: MockAgentState) -> dict:
 
     output_path = (state.get("output_path") or "").strip()
     if not output_path:
-        return {"errors": [_MSG_WRITE_FAIL], "status": "error"}
+        return {"errors": [MSG_WRITE_FAIL], "status": "error"}
 
     try:
+        assert_within_project_root(output_path)
         result = mcp_tools.write_file(
             output_path,
             generated_mock,
             overwrite=False,
         )
-    except (PermissionError, OSError, mcp_tools.InvalidExtensionError):
-        return {"errors": [_MSG_WRITE_FAIL], "status": "error"}
+    except (
+        PermissionError,
+        OSError,
+        PathOutsideProjectError,
+        ValidationError,
+        mcp_tools.InvalidExtensionError,
+    ):
+        return {"errors": [MSG_WRITE_FAIL], "status": "error"}
     except Exception:
-        return {"errors": [_MSG_WRITE_FAIL], "status": "error"}
+        return {"errors": [MSG_WRITE_FAIL], "status": "error"}
 
     if result.get("status") == "exists":
         existing = result.get("path") or output_path

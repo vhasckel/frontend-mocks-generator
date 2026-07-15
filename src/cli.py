@@ -13,6 +13,13 @@ import sys
 from dotenv import load_dotenv
 
 from src.agent.graph import run_agent
+from src.security.validation import (
+    MSG_INTERNAL,
+    PathOutsideProjectError,
+    ValidationError,
+    validate_file_size,
+    validate_input_path,
+)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -35,6 +42,17 @@ def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
+    # Validação antecipada (SPEC §12) — mesmas strings do módulo de segurança.
+    try:
+        resolved = validate_input_path(args.input_path)
+        validate_file_size(resolved)
+    except ValidationError as exc:
+        print(exc.message)
+        return 1
+    except PathOutsideProjectError:
+        print(MSG_INTERNAL)
+        return 1
+
     result = run_agent(args.input_path)
     message = (result.get("message") or "").strip()
     status = result.get("status")
@@ -45,7 +63,7 @@ def main(argv: list[str] | None = None) -> int:
     elif errors:
         print(" ".join(errors))
     else:
-        print("Erro interno durante a geração do mock.")
+        print(MSG_INTERNAL)
 
     if status == "success" and not errors:
         return 0

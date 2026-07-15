@@ -9,14 +9,19 @@ from __future__ import annotations
 from pathlib import Path
 
 from src.mcp.client import FilesystemMCPClient
+from src.security.validation import (
+    MSG_FILE_NOT_FOUND,
+    PathOutsideProjectError,
+    assert_within_project_root,
+    validate_file_size,
+)
 
 _client: FilesystemMCPClient | None = None
 
 _TS_SUFFIX = ".ts"
 
-
-class PathEscapeError(PermissionError):
-    """Path resolvido escapa de PROJECT_ROOT (RN02)."""
+# Alias público (compatível com nós que capturam PathEscapeError).
+PathEscapeError = PathOutsideProjectError
 
 
 class InvalidExtensionError(ValueError):
@@ -37,40 +42,14 @@ def reset_client() -> None:
     _client = None
 
 
-def _is_under_root(path: Path, root: Path) -> bool:
-    """True se ``path`` (já resolvido) permanece dentro de ``root``."""
-    try:
-        path.relative_to(root)
-        return True
-    except ValueError:
-        return False
-
-
 def _resolve_under_root(
     path: str,
     *,
     client: FilesystemMCPClient | None = None,
 ) -> Path:
-    """Resolve o path com ``Path.resolve()`` e garante sandbox em PROJECT_ROOT.
-
-    Bloqueia ``..`` e symlinks cujo alvo final escape do root (RN02).
-    """
+    """Resolve o path e garante sandbox em PROJECT_ROOT (RN02)."""
     mcp = client or get_client()
-    root = mcp.project_root.resolve()
-
-    candidate = Path(path).expanduser()
-    if not candidate.is_absolute():
-        candidate = root / candidate
-
-    # resolve() normaliza ``..`` e segue symlinks; o destino final deve
-    # permanecer sob PROJECT_ROOT.
-    resolved = candidate.resolve()
-    if not _is_under_root(resolved, root):
-        raise PathEscapeError(
-            f"Escrita/leitura fora de PROJECT_ROOT bloqueada (RN02): {path!r} "
-            f"resolve para {resolved} (root={root})"
-        )
-    return resolved
+    return assert_within_project_root(path, root=mcp.project_root.resolve())
 
 
 def _ensure_ts_extension(path: Path, *, operation: str) -> None:
@@ -94,8 +73,11 @@ def read_file(path: str) -> str:
     target = _resolve_under_root(path, client=client)
     _ensure_ts_extension(target, operation="Leitura")
     if not client.exists(target):
-        raise FileNotFoundError(f"Arquivo não encontrado: {path}")
-    return client.read_text(target)
+        raise FileNotFoundError(MSG_FILE_NOT_FOUND)
+    validate_file_size(target)
+    content = client.read_text(target)
+    validate_file_size(target, content_length=len(content.encode("utf-8")))
+    return content
 
 
 def write_file(path: str, content: str, overwrite: bool = False) -> dict:
@@ -112,6 +94,8 @@ def write_file(path: str, content: str, overwrite: bool = False) -> dict:
     client = get_client()
     target = _resolve_under_root(path, client=client)
     _ensure_ts_extension(target, operation="Escrita")
+    # Escrita também limitada ao tamanho configurado (SPEC §12).
+    validate_file_size(content_length=len(content.encode("utf-8")))
 
     if client.exists(target) and not overwrite:
         return {"status": "exists", "path": str(target)}

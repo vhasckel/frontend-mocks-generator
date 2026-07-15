@@ -11,9 +11,11 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
 from src.agent.state import MockAgentState
-
-_MSG_NO_INTERFACE = "Nenhuma interface exportada foi encontrada."
-_MSG_INTERNAL = "Erro interno durante a geração do mock."
+from src.security.validation import (
+    MSG_INTERNAL,
+    MSG_MISSING_API_KEY,
+    MSG_NO_INTERFACE,
+)
 
 _SYSTEM_PROMPT = """\
 You extract exported TypeScript structural types from source code.
@@ -80,10 +82,15 @@ def interpret_node(state: MockAgentState) -> dict:
         return {}
 
     load_dotenv()
+    # SPEC §12 — key só via env; falha clara sem vazar o valor.
+    api_key = (os.getenv("OPENAI_API_KEY") or "").strip()
+    if not api_key:
+        return {"errors": [MSG_MISSING_API_KEY], "status": "error"}
+
     model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
     try:
-        llm = ChatOpenAI(model=model_name, temperature=0)
+        llm = ChatOpenAI(model=model_name, temperature=0, api_key=api_key)
         response = llm.invoke(
             [
                 {"role": "system", "content": _SYSTEM_PROMPT},
@@ -103,10 +110,10 @@ def interpret_node(state: MockAgentState) -> dict:
         data = _extract_json(content)
         models = _models_from_parsed(data)
     except Exception:
-        return {"errors": [_MSG_INTERNAL], "status": "error"}
+        return {"errors": [MSG_INTERNAL], "status": "error"}
 
     if not models:
-        return {"errors": [_MSG_NO_INTERFACE], "status": "error"}
+        return {"errors": [MSG_NO_INTERFACE], "status": "error"}
 
     # Prefer a single root model; keep siblings for generate (T5+).
     primary = models[0]
