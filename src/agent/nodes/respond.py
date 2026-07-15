@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from src.agent.state import MockAgentState
-
-_MSG_INTERNAL = "Erro interno durante a geração do mock."
+from src.security.validation import MSG_INTERNAL
 
 
 def respond_node(state: MockAgentState) -> dict:
@@ -35,4 +34,4 @@ def respond_node(state: MockAgentState) -> dict:
     if parts:
         return {"message": " ".join(parts), "status": "error"}
 
-    return {"message": _MSG_INTERNAL, "status": "error"}
+    return {"message": MSG_INTERNAL, "status": "error"}
