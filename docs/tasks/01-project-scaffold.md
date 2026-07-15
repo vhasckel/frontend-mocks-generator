@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Criar a base Python 3.11+, dependências (LangGraph, LangChain, MCP, OpenAI, dotenv) e a árvore de pacotes vazia alinhada à SPEC (RNF04).
+Criar a base Python 3.11+, dependências (LangGraph, LangChain, MCP, Gemini, dotenv) e a árvore de pacotes vazia alinhada à SPEC (RNF04).
 
 ## Branch
 
@@ -31,8 +31,8 @@ examples/mocks/.gitkeep
 ## Critérios de aceite da etapa
 
 - [ ] Python ≥ 3.11 declarado em `pyproject.toml`
-- [ ] Dependências: `langgraph`, `langchain`, `langchain-openai`, `mcp`, `python-dotenv` (versões razoáveis/pinadas ou ranges estáveis)
-- [ ] `.env.example` com `OPENAI_API_KEY=` e variáveis de caminho permitido (ex.: `PROJECT_ROOT=`, `MOCKS_OUTPUT_DIR=examples/mocks`)
+- [ ] Dependências: `langgraph`, `langchain`, `langchain-google-genai`, `mcp`, `python-dotenv` (versões razoáveis/pinadas ou ranges estáveis)
+- [ ] `.env.example` com `GOOGLE_API_KEY=` e variáveis de caminho permitido (ex.: `PROJECT_ROOT=`, `MOCKS_OUTPUT_DIR=examples/mocks`)
 - [ ] Pacotes vazios com `__init__.py` nas pastas `src/agent`, `src/agent/nodes`, `src/mcp`, `src/rules`, `src/security`
 - [ ] Nenhum nó LangGraph, tool MCP ou CLI implementados ainda
 
@@ -53,7 +53,7 @@ Objetivo:
 2. Crie `pyproject.toml` para um pacote instalável local (nome sugerido: `frontend-mocks-generator` ou `fmg`), Python >=3.11, com dependências:
    - langgraph
    - langchain
-   - langchain-openai
+   - langchain-google-genai
    - mcp
    - python-dotenv
    Inclua também `requirements.txt` gerado/espelhado para instalação simples (`pip install -r requirements.txt`).
@@ -68,7 +68,8 @@ Objetivo:
    examples/types/.gitkeep
    examples/mocks/.gitkeep
 4. Crie `.env.example` (NUNCA commit `.env`) com:
-   OPENAI_API_KEY=
+   GOOGLE_API_KEY=
+   GEMINI_MODEL=gemini-2.0-flash
    PROJECT_ROOT=.
    MOCKS_OUTPUT_DIR=examples/mocks
    MAX_FILE_SIZE_BYTES=100000

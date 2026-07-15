@@ -103,7 +103,7 @@ requirements.txt
 ### Ordem e marcos
 
 1. **T0** — bootstrap do repositório e índice de tarefas.
-2. **T1** — scaffold Python + deps. Depois: copiar `.env.example` → `.env` e preencher `OPENAI_API_KEY`.
+2. **T1** — scaffold Python + deps. Depois: copiar `.env.example` → `.env` e preencher `GOOGLE_API_KEY`.
 3. **T2 → T6** — MCP, estado LangGraph e nós do fluxo.
 4. **T7** — grafo + CLI. Smoke test:
    ```bash
