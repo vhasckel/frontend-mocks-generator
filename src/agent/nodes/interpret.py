@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from typing import Any
 
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-
+from src.agent.llm import get_chat_model
 from src.agent.state import MockAgentState
 from src.security.validation import (
     MSG_INTERNAL,
-    MSG_MISSING_API_KEY,
     MSG_NO_INTERFACE,
+    ValidationError,
 )
 
 _SYSTEM_PROMPT = """\
@@ -81,16 +78,9 @@ def interpret_node(state: MockAgentState) -> dict:
     if not source_code:
         return {}
 
-    load_dotenv()
     # SPEC §12 — key só via env; falha clara sem vazar o valor.
-    api_key = (os.getenv("OPENAI_API_KEY") or "").strip()
-    if not api_key:
-        return {"errors": [MSG_MISSING_API_KEY], "status": "error"}
-
-    model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-
     try:
-        llm = ChatOpenAI(model=model_name, temperature=0, api_key=api_key)
+        llm = get_chat_model()
         response = llm.invoke(
             [
                 {"role": "system", "content": _SYSTEM_PROMPT},
@@ -109,6 +99,8 @@ def interpret_node(state: MockAgentState) -> dict:
             content = str(content)
         data = _extract_json(content)
         models = _models_from_parsed(data)
+    except ValidationError as exc:
+        return {"errors": [exc.message], "status": "error"}
     except Exception:
         return {"errors": [MSG_INTERNAL], "status": "error"}
 
