@@ -32,6 +32,7 @@ class MockAgentState(TypedDict, total=False):
         errors: mensagens de erro acumuladas (SPEC §13).
         warnings: avisos não fatais (ex.: mock já existe — RN03).
         status: ``pending`` | ``running`` | ``success`` | ``error``.
+        message: mensagem final ao usuário montada pelo nó respond (RF08).
     """
 
     input_path: str
@@ -42,6 +43,7 @@ class MockAgentState(TypedDict, total=False):
     errors: Annotated[list[str], operator.add]
     warnings: Annotated[list[str], operator.add]
     status: AgentStatus
+    message: str
 
 
 def initial_state(input_path: str) -> MockAgentState:
@@ -55,4 +57,5 @@ def initial_state(input_path: str) -> MockAgentState:
         "errors": [],
         "warnings": [],
         "status": "pending",
+        "message": "",
     }
