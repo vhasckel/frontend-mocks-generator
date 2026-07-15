@@ -564,14 +564,16 @@ roles: ['ADMIN', 'USER'];
 
 O projeto será considerado concluído quando:
 
-- [ ] o agente executar o fluxo completo utilizando LangGraph;
-- [ ] a leitura do arquivo ocorrer via MCP;
-- [ ] o mock for gerado corretamente;
-- [ ] o arquivo for salvo automaticamente;
-- [ ] o estado for compartilhado entre os nós;
-- [ ] os erros forem tratados;
-- [ ] a documentação estiver completa;
+- [x] o agente executar o fluxo completo utilizando LangGraph;
+- [x] a leitura do arquivo ocorrer via MCP;
+- [x] o mock for gerado corretamente;
+- [x] o arquivo for salvo automaticamente;
+- [x] o estado for compartilhado entre os nós;
+- [x] os erros forem tratados;
+- [x] a documentação estiver completa;
 - [ ] o projeto estiver publicado no GitHub.
+
+**Status (T9):** os sete primeiros itens estão atendidos no código e na documentação após T0–T8 + T9. A leitura “via MCP” na v1 usa a abstração in-process `FilesystemMCPClient` / `mcp.tools` (não um servidor MCP externo). O item GitHub permanece aberto: o remote `origin` já aponta para `vhasckel/frontend-mocks-generator`, mas o push definitivo de `main` (incluir T8+T9) é passo residual humano. Detalhes em [TECHNICAL.md](TECHNICAL.md) §7.
 
 ---
 

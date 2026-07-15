@@ -127,3 +127,22 @@ Alinhado à SPEC §3 (Fora do Escopo) e §16 (Possíveis Evoluções). **Não** 
 - personalização avançada das regras além de `src/rules/generation.py`.
 
 A geração de valores é heurística determinística (nome/tipo da propriedade), com interpretação estrutural via LLM — não é um gerador estatístico de dados “realistas” genérico.
+
+---
+
+## 7. Status dos critérios de aceite (SPEC §15)
+
+Espelho do checklist da SPEC, refletindo o código após T0–T8 e a documentação desta etapa (T9).
+
+| Critério | Status | Notas |
+| --- | --- | --- |
+| Fluxo completo com LangGraph | Atendido | `build_graph` / `run_agent` em `src/agent/graph.py` |
+| Leitura do arquivo via MCP | Atendido* | Via `mcp/tools.read_file` + `FilesystemMCPClient` (abstração in-process; ver §2) |
+| Mock gerado corretamente | Atendido | Regras §11 + exemplos em `examples/` |
+| Arquivo salvo automaticamente | Atendido | Nó `write` → `MOCKS_OUTPUT_DIR` |
+| Estado compartilhado entre nós | Atendido | `MockAgentState` |
+| Erros tratados | Atendido | Mensagens SPEC §13 + short-circuit |
+| Documentação completa | Atendido | `SPEC.md`, este arquivo, `README.md`, `docs/tasks/` |
+| Publicado no GitHub | Pendente | Remote `origin` existe (`vhasckel/frontend-mocks-generator`); falta push de `main` com T8+T9 |
+
+\*Aceito na v1 conforme implementação documentada; evolução natural seria conectar um servidor MCP real.

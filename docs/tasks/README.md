@@ -115,13 +115,15 @@ requirements.txt
 
 ### Checklist de aceite final (SPEC §15)
 
-- [ ] O agente executa o fluxo completo com LangGraph
-- [ ] A leitura do arquivo ocorre via MCP
-- [ ] O mock é gerado corretamente
-- [ ] O arquivo é salvo automaticamente
-- [ ] O estado é compartilhado entre os nós
-- [ ] Os erros são tratados
-- [ ] A documentação está completa
+Espelho vivo em [SPEC.md §15](../SPEC.md#15-critérios-de-aceite) e [TECHNICAL.md §7](../TECHNICAL.md#7-status-dos-critérios-de-aceite-spec-15).
+
+- [x] O agente executa o fluxo completo com LangGraph
+- [x] A leitura do arquivo ocorre via MCP
+- [x] O mock é gerado corretamente
+- [x] O arquivo é salvo automaticamente
+- [x] O estado é compartilhado entre os nós
+- [x] Os erros são tratados
+- [x] A documentação está completa
 - [ ] O projeto está publicado no GitHub
 
 ## Contrato dos prompts
