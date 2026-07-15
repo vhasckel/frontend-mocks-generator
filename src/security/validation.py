@@ -22,7 +22,7 @@ MSG_INTERNAL = "Erro interno durante a geração do mock."
 
 # Mensagem clara para API key ausente (SPEC §12 API Keys) — nunca incluir o valor.
 MSG_MISSING_API_KEY = (
-    "OPENAI_API_KEY não configurada. Defina a variável de ambiente para continuar."
+    "GOOGLE_API_KEY não configurada. Defina a variável de ambiente para continuar."
 )
 
 _TS_SUFFIX = ".ts"
