@@ -48,6 +48,26 @@ def _has_critical_errors(state: MockAgentState) -> bool:
     return len(errors) > 0
 
 
+def _content_to_text(content: Any) -> str:
+    """Normaliza ``response.content`` (str ou blocos multimodais) para texto."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict) and block.get("type") == "text":
+                parts.append(str(block.get("text") or ""))
+            else:
+                # LangChain ContentBlock / objetos com atributo text.
+                text = getattr(block, "text", None)
+                if isinstance(text, str):
+                    parts.append(text)
+        return "\n".join(parts)
+    return str(content)
+
+
 def _extract_json(raw: str) -> dict[str, Any]:
     """Parse JSON from the LLM response, tolerating optional markdown fences."""
     text = raw.strip()
@@ -94,10 +114,7 @@ def interpret_node(state: MockAgentState) -> dict:
                 },
             ]
         )
-        content = response.content
-        if not isinstance(content, str):
-            content = str(content)
-        data = _extract_json(content)
+        data = _extract_json(_content_to_text(response.content))
         models = _models_from_parsed(data)
     except ValidationError as exc:
         return {"errors": [exc.message], "status": "error"}
