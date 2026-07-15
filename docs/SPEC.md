@@ -600,7 +600,7 @@ Entre as melhorias previstas para versões futuras estão:
 | LangGraph  | Orquestração do agente                         |
 | LangChain  | Integração com LLM                             |
 | MCP        | Ferramentas para acesso ao sistema de arquivos |
-| OpenAI API | Geração dos mocks                              |
+| Gemini API | Interpretação dos models TypeScript (LLM)      |
 | Git        | Versionamento                                  |
 | GitHub     | Hospedagem do projeto                          |
 

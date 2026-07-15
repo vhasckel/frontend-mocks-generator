@@ -53,7 +53,7 @@ Objetivo:
    - Constantes/mensagens centralizadas das strings EXATAS da seção 13
 3. Integre essas validações nos pontos certos (read_node, mcp tools, write_node, CLI) SEM duplicar inconsistente as strings de erro.
 4. Garantir short-circuit do grafo para respond com "Erro interno durante a geração do mock." em exceções não previstas (try/except no run_agent ou nó final).
-5. Se OPENAI_API_KEY ausente: falha clara antes/durante interpret, sem imprimir a key.
+5. Se GOOGLE_API_KEY ausente: falha clara antes/durante interpret, sem imprimir a key.
 6. Commits literais:
    - `feat: harden input validation and error messages`
    - `fix: map failure paths to SPEC error texts`

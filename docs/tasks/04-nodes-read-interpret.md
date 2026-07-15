@@ -24,7 +24,7 @@ src/agent/nodes/interpret.py
 - [ ] `read_node` usa tools MCP (`src/mcp/tools.py`) e preenche `source_code` / `errors` / `status`
 - [ ] Arquivo inexistente → mensagem `"Arquivo não encontrado."`
 - [ ] Extensão inválida / não-TS → `"O arquivo informado não é um arquivo TypeScript válido."`
-- [ ] `interpret_node` usa LLM (langchain-openai) para extrair interfaces, types e enums exportados
+- [ ] `interpret_node` usa LLM (langchain-google-genai / Gemini) para extrair interfaces, types e enums exportados
 - [ ] Se nada exportado for encontrado → `"Nenhuma interface exportada foi encontrada."` (ou mensagem da SPEC; manter texto exato)
 - [ ] Atualiza `parsed_model` no estado
 - [ ] Sem generate/validate/write/graph/CLI
@@ -54,7 +54,7 @@ Objetivo:
 3. Implemente `src/agent/nodes/interpret.py`:
    - Função `interpret_node(state) -> dict`
    - Se state já tem errors críticos / sem source_code, short-circuit
-   - Chamar LLM (ChatOpenAI ou equivalente langchain-openai; API key via env) com prompt estruturado pedindo JSON com:
+   - Chamar LLM (ChatGoogleGenerativeAI / langchain-google-genai; API key via env `GOOGLE_API_KEY`) com prompt estruturado pedindo JSON com:
      - name, kind (interface | type | enum), properties[{name, type, optional}], enums values, nested objects
    - Identificar interfaces, types e enums (RF04)
    - Se nenhuma estrutura exportada relevante: errors.append("Nenhuma interface exportada foi encontrada.")

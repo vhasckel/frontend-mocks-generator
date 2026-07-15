@@ -48,7 +48,7 @@ Objetivo:
    - variáveis de ambiente
    - limitações da v1 (apontar seção 16 Fora do escopo / evoluções)
 3. Atualize `README.md` da raiz para um guia de uso completo:
-   - pré-requisitos (Python 3.11+, OpenAI key)
+   - pré-requisitos (Python 3.11+, Google/Gemini API key)
    - setup (venv, pip install, .env)
    - uso: `python -m src.cli examples/types/User.ts`
    - link para SPEC e TECHNICAL e docs/tasks/
