@@ -39,7 +39,7 @@ Após `read`, `interpret`, `generate` e `validate`, se `status == "error"` ou `e
 | **Grafo** | `src/agent/graph.py` | Compila o `StateGraph`, roteamento condicional e `run_agent(input_path)` |
 | **Estado** | `src/agent/state.py` | Schema `MockAgentState` e `initial_state` |
 | **Nó read** | `src/agent/nodes/read.py` | Valida entrada e lê o `.ts` via MCP → `source_code` |
-| **Nó interpret** | `src/agent/nodes/interpret.py` | LLM (`ChatOpenAI`) extrai models exportados → `parsed_model` |
+| **Nó interpret** | `src/agent/nodes/interpret.py` | LLM (`ChatGoogleGenerativeAI` / Gemini) extrai models exportados → `parsed_model`; prompt em `docs/prompts/interpret.md` |
 | **Nó generate** | `src/agent/nodes/generate.py` | Aplica regras de `rules/` → `generated_mock` + `output_path` |
 | **Nó validate** | `src/agent/nodes/validate.py` | Checagens estruturais do mock (export, props do modelo, etc.) |
 | **Nó write** | `src/agent/nodes/write.py` | Persiste via MCP com `overwrite=False` (RN03) |
@@ -79,7 +79,8 @@ Fonte: `.env.example` / `.env` (carregadas com `python-dotenv`). **Nunca** commi
 
 | Variável | Default | Uso |
 | --- | --- | --- |
-| `OPENAI_API_KEY` | _(obrigatória)_ | Autenticação da LLM no nó `interpret` |
+| `GOOGLE_API_KEY` | _(obrigatória)_ | Autenticação da LLM Gemini no nó `interpret` (`GEMINI_API_KEY` também aceita) |
+| `GEMINI_MODEL` | `gemini-2.0-flash` | Nome do modelo Gemini (opcional) |
 | `PROJECT_ROOT` | `.` | Raiz do sandbox de leitura/escrita |
 | `MOCKS_OUTPUT_DIR` | `examples/mocks` | Diretório dos mocks gerados (relativo ao root se não absoluto) |
 | `MAX_FILE_SIZE_BYTES` | `100000` | Limite de tamanho de arquivo/conteúdo |
@@ -108,6 +109,7 @@ examples/
 docs/
   SPEC.md
   TECHNICAL.md
+  prompts/          # prompts de runtime (interpret.md)
   tasks/
 .env.example
 README.md

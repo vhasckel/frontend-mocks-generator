@@ -68,6 +68,7 @@ examples/
 docs/
   SPEC.md         # especificação do produto
   TECHNICAL.md    # arquitetura e detalhes de implementação
+  prompts/        # prompts de runtime da LLM (ex.: interpret)
   tasks/          # fluxo de implementação por etapas (T0–T9)
 .env.example
 pyproject.toml
@@ -80,7 +81,16 @@ requirements.txt
 | --- | --- |
 | [docs/SPEC.md](docs/SPEC.md) | Requisitos, regras de negócio, critérios de aceite, evoluções |
 | [docs/TECHNICAL.md](docs/TECHNICAL.md) | Arquitetura, módulos, estado, variáveis de ambiente, limitações da v1 |
-| [docs/tasks/](docs/tasks/) | Etapas T0–T9, branches, critérios de aceite e prompts |
+| [docs/prompts/](docs/prompts/) | Prompts de runtime da LLM (carregados pelo agente) |
+| [docs/tasks/](docs/tasks/) | Etapas T0–T9, branches, critérios de aceite e prompts de implementação |
+
+## Decisões principais
+
+- **LangGraph** orquestra o fluxo com estado compartilhado (`MockAgentState`) e short-circuit para `respond` em falha.
+- **Gemini** (`ChatGoogleGenerativeAI` + `GOOGLE_API_KEY`) interpreta o model TypeScript; a geração dos valores do mock usa heurísticas determinísticas em `src/rules/`, não Faker.
+- **MCP de filesystem** na v1 é uma abstração in-process (`src/mcp/`), sandboxed em `PROJECT_ROOT`, não um servidor MCP externo.
+- Escrita de mock **não sobrescreve** arquivos existentes (RN03).
+- Prompts de runtime ficam em `docs/prompts/`; prompts usados para planejar/implementar o agente ficam em `docs/tasks/`.
 
 ## Fora do escopo (v1)
 
