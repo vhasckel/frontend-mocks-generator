@@ -2,6 +2,8 @@
 
 Agente inteligente baseado em **LangGraph** e **MCP** que lê models TypeScript (interfaces, types e enums) e gera automaticamente arquivos de mock compatíveis.
 
+**Apresentação:** [Slides do projeto](https://docs.google.com/presentation/d/1nIJh65_Sij69sw0NnmjVz88WGrxqP0DgfNN1xVhJVPU/edit?usp=sharing)
+
 ## Problema
 
 Durante o desenvolvimento frontend, a UI costuma avançar antes da API estar pronta. Criar mocks manualmente é repetitivo, sujeito a inconsistências entre desenvolvedores e fácil de ficar desalinhado do model TypeScript real.
@@ -18,14 +20,14 @@ O agente é um grafo LangGraph com estado compartilhado (`MockAgentState`). Flux
 START → read → interpret → generate → validate → write → respond → END
 ```
 
-| Nó | Função |
-| --- | --- |
-| `read` | Lê o `.ts` de entrada |
-| `interpret` | Extrai models exportados via Gemini |
-| `generate` | Monta o mock com heurísticas em `src/rules/` |
-| `validate` | Checa estrutura do código gerado |
-| `write` | Grava o arquivo (sem sobrescrever) |
-| `respond` | Monta a mensagem final de sucesso ou erro |
+| Nó          | Função                                       |
+| ----------- | -------------------------------------------- |
+| `read`      | Lê o `.ts` de entrada                        |
+| `interpret` | Extrai models exportados via Gemini          |
+| `generate`  | Monta o mock com heurísticas em `src/rules/` |
+| `validate`  | Checa estrutura do código gerado             |
+| `write`     | Grava o arquivo (sem sobrescrever)           |
+| `respond`   | Monta a mensagem final de sucesso ou erro    |
 
 Em falha após `read`, `interpret`, `generate` ou `validate`, o grafo faz short-circuit direto para `respond`. Detalhes em [docs/TECHNICAL.md](docs/TECHNICAL.md).
 
@@ -108,12 +110,12 @@ Outro exemplo: `examples/types/AddressUser.ts`.
 Arquivo gerado: `examples/mocks/user.mock.ts`
 
 ```ts
-import { User } from '../types/User';
+import { User } from "../types/User";
 
 export const userMock: User = {
   id: 1,
-  name: 'João Silva',
-  email: 'user@email.com',
+  name: "João Silva",
+  email: "user@email.com",
   active: true,
 };
 ```
@@ -142,12 +144,12 @@ requirements.txt
 
 ## Documentação
 
-| Documento | Conteúdo |
-| --- | --- |
-| [docs/SPEC.md](docs/SPEC.md) | Requisitos, regras de negócio, critérios de aceite, evoluções |
-| [docs/TECHNICAL.md](docs/TECHNICAL.md) | Arquitetura, módulos, estado, variáveis de ambiente, limitações da v1 |
-| [docs/prompts/](docs/prompts/) | Prompts de runtime da LLM (carregados pelo agente) |
-| [docs/tasks/](docs/tasks/) | Etapas T0–T9, branches, critérios de aceite e prompts de implementação |
+| Documento                              | Conteúdo                                                               |
+| -------------------------------------- | ---------------------------------------------------------------------- |
+| [docs/SPEC.md](docs/SPEC.md)           | Requisitos, regras de negócio, critérios de aceite, evoluções          |
+| [docs/TECHNICAL.md](docs/TECHNICAL.md) | Arquitetura, módulos, estado, variáveis de ambiente, limitações da v1  |
+| [docs/prompts/](docs/prompts/)         | Prompts de runtime da LLM (carregados pelo agente)                     |
+| [docs/tasks/](docs/tasks/)             | Etapas T0–T9, branches, critérios de aceite e prompts de implementação |
 
 ## Decisões principais
 
